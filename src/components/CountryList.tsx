@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import CountryModal from './CountryModal';
 
 interface Country {
     cca2: string;
@@ -22,6 +23,7 @@ interface Country {
 const CountryList: React.FC = () => {
     const [countries, setCountries] = useState<Country[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
     // Add state for sorting, searching, and pagination
     const [sortBy, setSortBy] = useState<'asc' | 'desc'>('asc'); // 'asc' or 'desc'
@@ -80,13 +82,19 @@ const CountryList: React.FC = () => {
     const indexOfFirstCountry = indexOfLastCountry - rowsPerPage;
     const currentCountries = filteredCountries.slice(indexOfFirstCountry, indexOfLastCountry);
 
+    const handleRowClick = (country: Country) => {
+        console.log(setSelectedCountry(country));
+        
+        setSelectedCountry(country);
+    };
+
     return (
         <div>
             {/* Display paginated countries */}
             <div className="container mt-5">
                 <h2 className='mb-4'>Country Catalog</h2>
 
-                <div className='d-flex justify-content-between'>
+                <div className='d-flex justify-content-between mb-2'>
                     {/* Add search input */}
                     <div className='col-auto'>
                         <input
@@ -121,7 +129,7 @@ const CountryList: React.FC = () => {
                         <tr key={country.cca2}>
                             {/* Display country information */}
                             <td><img width="50" src={country.flags.png} alt="" /></td>
-                            <td>{country.name.official}</td>
+                            <td onClick={() => handleRowClick(country)} style={{ cursor: 'pointer' }}>{country.name.official}</td>
                             <td>{country.cca2}</td>
                             <td>{country.cca3}</td>
                             <td>{DisplayNativeOfficialName({ country })}</td>
@@ -131,6 +139,9 @@ const CountryList: React.FC = () => {
                         
                     ))}
                     </tbody>
+                    {selectedCountry && (
+                        <CountryModal country={selectedCountry} onClose={() => setSelectedCountry(null)} />
+                    )}
                 </table>
 
                 {/* Add pagination controls */}

@@ -1,0 +1,19 @@
+/* YourComponentStyle.css */
+
+.country-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.country-item {
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+.country-item strong {
+    margin-right: 5px;
+    color: #007bff; /* Change the color to your preference */
+}
+  
+/* Add more styles as needed */
+  
