@@ -23,6 +23,12 @@ const CountryList: React.FC = () => {
     const [countries, setCountries] = useState<Country[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Add state for sorting, searching, and pagination
+    const [sortBy, setSortBy] = useState<'asc' | 'desc'>('asc'); // 'asc' or 'desc'
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const rowsPerPage = 25;
+
     useEffect(() => {
         const fetchData = async () => {
         try {
@@ -44,7 +50,17 @@ const CountryList: React.FC = () => {
     }
 
     // Filter and sort countries based on user input
-    const filteredCountries = countries;
+    const filteredCountries = countries
+    .filter((country) =>
+    country.name.official.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+    const nameA = a.name.official.toLowerCase();
+    const nameB = b.name.official.toLowerCase();
+    return sortBy === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    });
+
+
     function DisplayNativeOfficialName({ country }: { country: Country }): React.ReactNode {
         const firstNativeName = (Object.values(country?.name?.nativeName || {}) as { official?: string }[])[0];
         const nativeOfficial = firstNativeName?.official;
@@ -59,12 +75,35 @@ const CountryList: React.FC = () => {
         return Object.values(country.idd.suffixes || {})[0];
     }
 
+    // Pagination logic
+    const indexOfLastCountry = currentPage * rowsPerPage;
+    const indexOfFirstCountry = indexOfLastCountry - rowsPerPage;
+    const currentCountries = filteredCountries.slice(indexOfFirstCountry, indexOfLastCountry);
 
     return (
         <div>
-            {/* Display countries */}
+            {/* Display paginated countries */}
             <div className="container mt-5">
-                <h3>Country Catalog</h3>
+                <h2 className='mb-4'>Country Catalog</h2>
+
+                <div className='d-flex justify-content-between'>
+                    {/* Add search input */}
+                    <div className='col-auto'>
+                        <input
+                            type="text"
+                            className='form-control'
+                            placeholder="Search by Name"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Add sorting button */}
+                    <button className='btn btn-secondary' onClick={() => setSortBy(sortBy === 'asc' ? 'desc' : 'asc')}>
+                        Sort by Country Name ({sortBy})
+                    </button>
+                </div>
+
                 <table className="table">
                     <thead>
                     <tr>
@@ -78,7 +117,7 @@ const CountryList: React.FC = () => {
                     </tr>
                     </thead>
                     <tbody>
-                    {filteredCountries.map((country) => (
+                    {currentCountries.map((country) => (
                         <tr key={country.cca2}>
                             {/* Display country information */}
                             <td><img width="50" src={country.flags.png} alt="" /></td>
@@ -93,6 +132,16 @@ const CountryList: React.FC = () => {
                     ))}
                     </tbody>
                 </table>
+
+                {/* Add pagination controls */}
+                <div className='d-flex justify-content-end'>
+                    <button className='btn btn-secondary me-1' onClick={() => setCurrentPage((prev) => prev - 1)} disabled={currentPage === 1}>
+                        Previous
+                    </button>
+                    <button className='btn btn-secondary ms-1' onClick={() => setCurrentPage((prev) => prev + 1)} disabled={indexOfLastCountry >= filteredCountries.length}>
+                        Next
+                    </button>
+                </div>
             </div>
         </div>
     );
